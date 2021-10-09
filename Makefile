@@ -56,7 +56,7 @@ else
 		# platform id
 		PLATFORM=RPI
 		# SDL2 library file
-		SDL2_LIB=libSDL2-2.0.so.0
+		SDL2_LIB=libSDL2-2.0.so.0.9.0
 		# path where to the SDL2 library file
 		SDL2_PATH=/lib/arm-linux-gnueabihf/
 		DEBUG_FLAGS=-lSDL2 -lm
