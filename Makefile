@@ -98,7 +98,7 @@ package-release:
 	${COPY_FILES} ${BIN_DIR}/$(APP_BINARY) ${BUILD_RELEASE_BINARY_DIR}/${APP_BINARY}
 	${COPY_FILES} res/demo_games ${BUILD_RELEASE_DIR}/games
 	${COPY_FILES} doc/MANUAL.txt ${BUILD_RELEASE_DIR}/MANUAL.txt
-	${COPY_FILES} LICENSE.txt ${BUILD_RELEASE_DIR}/LICENSE.txt
+	${COPY_FILES} res/LICENSE.txt ${BUILD_RELEASE_DIR}/LICENSE.txt
 
 package-release-WIN: package-release
 
