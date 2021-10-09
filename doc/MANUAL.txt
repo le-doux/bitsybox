@@ -1,0 +1,28 @@
+*--------------------*
+|      BITSYBOX      |
+|  a bitsy emulator  |
+|  by  adam le doux  |
+*--------------------*
+
+== controls ==
+toggle fullscreen: alt+enter
+quit: alt+F4 or cmd+Q
+return to menu: ctrl+R or esc
+move avatar: arrows or WASD
+ok / next: space or enter
+
+== gamepad controls ==
+return to menu: start
+move avatar: d-pad
+ok / next: face buttons
+
+== games ==
+>> add games you want to play to
+   the "games" folder next to the
+   "bitsybox" application
+>> games must be text files with
+   a ".bitsy" file extension
+>> to download a .bitsy game from
+   the bitsy web editor, go to the
+   game data tool and press the
+   "download data" button
