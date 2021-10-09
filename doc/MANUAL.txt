@@ -26,3 +26,7 @@ ok / next: face buttons
    the bitsy web editor, go to the
    game data tool and press the
    "download data" button
+>> if there is only one game, it
+   will launch immediately,
+   otherwise bitsybox will boot
+   to the game select menu
