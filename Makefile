@@ -26,6 +26,7 @@ ifeq ($(OS), Windows_NT)
 	# windows doesn't have a standard location to install libraries but I've chosen to use C:
 	SDL2_ROOT=C:\\SDL2-2.0.16
 	# on windows I'm using the DLL version of SDL2
+	SDL2_LIB_SRC=SDL2.dll
 	SDL2_LIB=SDL2.dll
 	# path to the SDL2 library
 	SDL2_PATH=${SDL2_ROOT}\\lib\\x86\\
@@ -40,6 +41,7 @@ else
 		# platform id
 		PLATFORM=MAC
 		# on mac I'm using the framework version of SDL2
+		SDL2_LIB_SRC=SDL2.framework
 		SDL2_LIB=SDL2.framework
 		# look for SDL2 from the standard install location for frameworks on macos
 		SDL2_PATH=/Library/Frameworks/
@@ -56,7 +58,8 @@ else
 		# platform id
 		PLATFORM=RPI
 		# SDL2 library file
-		SDL2_LIB=libSDL2-2.0.so.0.9.0
+		SDL2_LIB_SRC=libSDL2-2.0.so.0.9.0
+		SDL2_LIB=libSDL2-2.0.so.0
 		# path where to the SDL2 library file
 		SDL2_PATH=/lib/arm-linux-gnueabihf/
 		DEBUG_FLAGS=-lSDL2 -lm
@@ -94,7 +97,7 @@ build-release:
 package-release:
 	${MAKE_DIRECTORY} ${BUILD_RELEASE_BINARY_DIR}
 	${MAKE_DIRECTORY} ${BUILD_RELEASE_LIBRARY_DIR}
-	${COPY_FILES} ${SDL2_PATH}${SDL2_LIB} ${BUILD_RELEASE_LIBRARY_DIR}/${SDL2_LIB}
+	${COPY_FILES} ${SDL2_PATH}${SDL2_LIB_SRC} ${BUILD_RELEASE_LIBRARY_DIR}/${SDL2_LIB}
 	${COPY_FILES} ${BIN_DIR}/$(APP_BINARY) ${BUILD_RELEASE_BINARY_DIR}/${APP_BINARY}
 	${COPY_FILES} res/demo_games ${BUILD_RELEASE_DIR}/games
 	${COPY_FILES} doc/MANUAL.txt ${BUILD_RELEASE_DIR}/MANUAL.txt
@@ -122,7 +125,7 @@ package-debug:
 	${COPY_FILES} res/demo_games ${BUILD_DEBUG_DIR}/games
 
 package-debug-WIN: package-debug
-	${COPY_FILES} ${SDL2_PATH}${SDL2_LIB} ${BUILD_DEBUG_DIR}/${SDL2_LIB}
+	${COPY_FILES} ${SDL2_PATH}${SDL2_LIB_SRC} ${BUILD_DEBUG_DIR}/${SDL2_LIB}
 
 package-debug-MAC: package-debug
 
