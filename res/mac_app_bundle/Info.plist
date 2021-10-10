@@ -12,7 +12,5 @@
 	<string>bitsybox</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-	<key>SDL_FILESYSTEM_BASE_DIR_TYPE</key>
-	<string>parent</string>
 </dict>
 </plist>

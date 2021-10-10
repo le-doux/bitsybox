@@ -30,3 +30,18 @@ ok / next: face buttons
    will launch immediately,
    otherwise bitsybox will boot
    to the game select menu
+
+== note for macOS ==
+on newer versions of macOS, the first
+time you run bitsybox you'll need to
+give the operating system permission
+to run the application:
+>> first, ctrl-click on the app
+   and select "Open"
+>> you'll see a message warning you
+   about running applications
+   downloaded from the internet -
+   select "Open" again
+>> from now on you should be able
+   to run bitsybox normally by
+   double-clicking!

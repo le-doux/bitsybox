@@ -14,6 +14,8 @@ COPY_FILES=cp -R
 MAKE_DIRECTORY=mkdir -p
 # remove directory recursively (if it exists)
 REMOVE_DIRECTORY=rm -rf
+# make alias to directory (shortcut)
+MAKE_ALIAS=ln -s
 
 # == DETECT PLATFORM ==
 # WIN = Windows 10, MAC = MacOS, RPI = Raspberry Pi 4
@@ -35,6 +37,7 @@ ifeq ($(OS), Windows_NT)
 	DEBUG_FLAGS=-I${SDL2_INCLUDE_PATH} -L${SDL2_PATH} -lSDL2main -lSDL2
 	# add the "-mwindows" flag in release builds to hide console output
 	RELEASE_FLAGS=${DEBUG_FLAGS} -mwindows
+	BUILD_RELEASE_GAMES_SUBDIR=games
 else
 	ifeq ($(shell uname -s), Darwin)
 		# == MAC ==
@@ -49,9 +52,12 @@ else
 		# add an -rpath so the release version can find SDL2.framework in the app bundle
 		RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,@executable_path/../Frameworks
 		# mac app bundles require the app binary to be in a specific sub-directory
-		BUILD_RELEASE_BINARY_SUBDIR=/${APP_NAME}.app/Contents/MacOS
+		MAC_APP_BUNDLE_ROOT=${APP_NAME}.app/Contents
+		BUILD_RELEASE_BINARY_SUBDIR=${MAC_APP_BUNDLE_ROOT}/MacOS
 		# put SDL2 framework in a consistent spot in the app bundle
-		BUILD_RELEASE_LIBRARY_SUBDIR=/${APP_NAME}.app/Contents/Frameworks
+		BUILD_RELEASE_LIBRARY_SUBDIR=${MAC_APP_BUNDLE_ROOT}/Frameworks
+		# games also need to be in the bundle for the app to have permission to open them
+		BUILD_RELEASE_GAMES_SUBDIR=${MAC_APP_BUNDLE_ROOT}/Resources/games
 	else
 		# == RASPBERRY PI ==
 		# NOTE: I don't know how to detect this system so I'm defaulting to it if I don't detect MAC or WIN
@@ -65,6 +71,7 @@ else
 		DEBUG_FLAGS=-lSDL2 -lm
 		# add an -rpath so I can bundle the .so file with the app binary so users don't need to install SDL2
 		RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,'$$ORIGIN'
+		BUILD_RELEASE_GAMES_SUBDIR=games
 	endif
 endif
 
@@ -79,8 +86,9 @@ SRC_FILES=src/bitsybox/*.c src/bitsybox/duktape/*.c
 BIN_DIR=build/bin
 BUILD_DEBUG_DIR=$(BUILD_RELEASE_DIR)_DEBUG
 BUILD_RELEASE_DIR=build/$(APP_NAME)_$(PLATFORM)
-BUILD_RELEASE_BINARY_DIR=${BUILD_RELEASE_DIR}${BUILD_RELEASE_BINARY_SUBDIR}
-BUILD_RELEASE_LIBRARY_DIR=${BUILD_RELEASE_DIR}${BUILD_RELEASE_LIBRARY_SUBDIR}
+BUILD_RELEASE_BINARY_DIR=${BUILD_RELEASE_DIR}/${BUILD_RELEASE_BINARY_SUBDIR}
+BUILD_RELEASE_LIBRARY_DIR=${BUILD_RELEASE_DIR}/${BUILD_RELEASE_LIBRARY_SUBDIR}
+BUILD_RELEASE_GAMES_DIR=${BUILD_RELEASE_DIR}/${BUILD_RELEASE_GAMES_SUBDIR}
 
 # == RELEASE TARGET ==
 release: clean-release embed-js build-release package-release-${PLATFORM}
@@ -97,16 +105,18 @@ build-release:
 package-release:
 	${MAKE_DIRECTORY} ${BUILD_RELEASE_BINARY_DIR}
 	${MAKE_DIRECTORY} ${BUILD_RELEASE_LIBRARY_DIR}
+	${MAKE_DIRECTORY} ${BUILD_RELEASE_GAMES_DIR}
 	${COPY_FILES} ${SDL2_PATH}${SDL2_LIB_SRC} ${BUILD_RELEASE_LIBRARY_DIR}/${SDL2_LIB}
 	${COPY_FILES} ${BIN_DIR}/$(APP_BINARY) ${BUILD_RELEASE_BINARY_DIR}/${APP_BINARY}
-	${COPY_FILES} res/demo_games ${BUILD_RELEASE_DIR}/games
+	${COPY_FILES} res/demo_games/* ${BUILD_RELEASE_GAMES_DIR}
 	${COPY_FILES} doc/MANUAL.txt ${BUILD_RELEASE_DIR}/MANUAL.txt
 	${COPY_FILES} res/LICENSE.txt ${BUILD_RELEASE_DIR}/LICENSE.txt
 
 package-release-WIN: package-release
 
 package-release-MAC: package-release
-	${COPY_FILES} res/mac_app_bundle/Info.plist ${BUILD_RELEASE_DIR}/${APP_NAME}.app/Contents/Info.plist
+	${COPY_FILES} res/mac_app_bundle/Info.plist ${BUILD_RELEASE_DIR}/${MAC_APP_BUNDLE_ROOT}/Info.plist
+	${MAKE_ALIAS} ${BUILD_RELEASE_GAMES_SUBDIR} ${BUILD_RELEASE_DIR}/games
 
 package-release-RPI: package-release
 
