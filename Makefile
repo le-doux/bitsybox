@@ -58,31 +58,31 @@ else
 		BUILD_RELEASE_LIBRARY_SUBDIR=${MAC_APP_BUNDLE_ROOT}/Frameworks
 		# games also need to be in the bundle for the app to have permission to open them
 		BUILD_RELEASE_GAMES_SUBDIR=${MAC_APP_BUNDLE_ROOT}/Resources/games
-    else
-        ifeq ($(shell uname -s), Linux)
-            ifeq ($(shell uname -m), x86_64)
-                # == LINUX ==
-                PLATFORM=LIN
-                # path to the SDL2 library file
-                SDL2_PATH=/usr/lib/
-                # SDL2 library file
-                SDL2_LIB_SRC=libSDL2-2.0.so.0.16.0
-                SDL2_LIB=libSDL2-2.0.so.0
-            else
-                # == RASPBERRY PI ==
-                PLATFORM=RPI
-                # path to the SDL2 library file
-                SDL2_PATH=/lib/arm-linux-gnueabihf/
-                # SDL2 library file
-                SDL2_LIB_SRC=libSDL2-2.0.so.0.9.0
-                SDL2_LIB=libSDL2-2.0.so.0
-            endif
+	else
+		ifeq ($(shell uname -s), Linux)
+			ifeq ($(shell uname -m), x86_64)
+				# == LINUX ==
+				PLATFORM=LIN
+				# path to the SDL2 library file
+				SDL2_PATH=/usr/lib/
+				# SDL2 library file
+				SDL2_LIB_SRC=libSDL2-2.0.so.0.16.0
+				SDL2_LIB=libSDL2-2.0.so.0
+			else
+				# == RASPBERRY PI ==
+				PLATFORM=RPI
+				# path to the SDL2 library file
+				SDL2_PATH=/lib/arm-linux-gnueabihf/
+				# SDL2 library file
+				SDL2_LIB_SRC=libSDL2-2.0.so.0.9.0
+				SDL2_LIB=libSDL2-2.0.so.0
+			endif
 
-            DEBUG_FLAGS=-lSDL2 -lm
-            # add an -rpath so I can bundle the .so file with the app binary so users don't need to install SDL2
-            RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,'$$ORIGIN'
-            BUILD_RELEASE_GAMES_SUBDIR=games
-        endif
+			DEBUG_FLAGS=-lSDL2 -lm
+			# add an -rpath so I can bundle the .so file with the app binary so users don't need to install SDL2
+			RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,'$$ORIGIN'
+			BUILD_RELEASE_GAMES_SUBDIR=games
+		endif
 	endif
 endif
 
