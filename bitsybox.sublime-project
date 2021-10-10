@@ -1,0 +1,17 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"build_systems":
+	[
+		{
+			"name": "Make - Debug",
+			"shell_cmd": "make debug",
+			"keyfiles": ["Makefile"],
+			"working_dir": "$project_path"
+		},
+	]
+}
