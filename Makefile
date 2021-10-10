@@ -52,19 +52,30 @@ else
 		BUILD_RELEASE_BINARY_SUBDIR=/${APP_NAME}.app/Contents/MacOS
 		# put SDL2 framework in a consistent spot in the app bundle
 		BUILD_RELEASE_LIBRARY_SUBDIR=/${APP_NAME}.app/Contents/Frameworks
-	else
-		# == RASPBERRY PI ==
-		# NOTE: I don't know how to detect this system so I'm defaulting to it if I don't detect MAC or WIN
-		# platform id
-		PLATFORM=RPI
-		# SDL2 library file
-		SDL2_LIB_SRC=libSDL2-2.0.so.0.9.0
-		SDL2_LIB=libSDL2-2.0.so.0
-		# path where to the SDL2 library file
-		SDL2_PATH=/lib/arm-linux-gnueabihf/
-		DEBUG_FLAGS=-lSDL2 -lm
-		# add an -rpath so I can bundle the .so file with the app binary so users don't need to install SDL2
-		RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,'$$ORIGIN'
+    else
+        ifeq ($(shell uname -s), Linux)
+            ifeq ($(shell uname -m), x86_64)
+                # == LINUX ==
+                PLATFORM=LIN
+                # path to the SDL2 library file
+                SDL2_PATH=/usr/lib/
+                # SDL2 library file
+                SDL2_LIB_SRC=libSDL2-2.0.so.0.16.0
+                SDL2_LIB=libSDL2-2.0.so.0
+            else
+                # == RASPBERRY PI ==
+                PLATFORM=RPI
+                # path to the SDL2 library file
+                SDL2_PATH=/lib/arm-linux-gnueabihf/
+                # SDL2 library file
+                SDL2_LIB_SRC=libSDL2-2.0.so.0.9.0
+                SDL2_LIB=libSDL2-2.0.so.0
+            endif
+
+            DEBUG_FLAGS=-lSDL2 -lm
+            # add an -rpath so I can bundle the .so file with the app binary so users don't need to install SDL2
+            RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,'$$ORIGIN'
+        endif
 	endif
 endif
 
@@ -108,6 +119,8 @@ package-release-WIN: package-release
 package-release-MAC: package-release
 	${COPY_FILES} res/mac_app_bundle/Info.plist ${BUILD_RELEASE_DIR}/${APP_NAME}.app/Contents/Info.plist
 
+package-release-LIN: package-release
+
 package-release-RPI: package-release
 
 # == DEBUG TARGET ==
@@ -128,6 +141,8 @@ package-debug-WIN: package-debug
 	${COPY_FILES} ${SDL2_PATH}${SDL2_LIB_SRC} ${BUILD_DEBUG_DIR}/${SDL2_LIB}
 
 package-debug-MAC: package-debug
+
+package-debug-LIN: package-debug
 
 package-debug-RPI: package-debug
 
