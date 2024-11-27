@@ -1,14 +1,18 @@
 boot
 
-# BITSY VERSION 7.10
+# BITSY VERSION 8.12
 
+! VER_MAJ 8
+! VER_MIN 12
 ! ROOM_FORMAT 1
+! DLG_COMPAT 0
+! TXT_MODE 0
 
 PAL 0
-NAME blueprint
 0,82,204
 128,159,255
 255,255,255
+NAME blueprint
 
 ROOM 0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -1556,3 +1560,40 @@ NAME key dialog
 VAR a
 42
 
+TUNE 1
+C5,E,A,D,3C,0,0,E2~1,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+>
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+>
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+>
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+NAME boot_tune
+TMP MED
+SQR P2 P4
+
+BLIP 1
+E2,D5,C5
+NAME boot_blip
+ENV 182 119 3 128 240
+BEAT 32 121
+SQR P2
+
+BLIP 2
+G#2,0,0
+NAME game_select
+ENV 16 62 3 35 1
+BEAT 0 0
+SQR P2
+
+BLIP 3
+C#2,A#5,F#5
+NAME game_start
+ENV 243 99 3 100 223
+BEAT 58 32
+SQR P2
+RPT 1

@@ -2,8 +2,8 @@
 	"folders":
 	[
 		{
-			"path": "."
-		}
+			"path": ".",
+		},
 	],
 	"build_systems":
 	[
@@ -11,7 +11,18 @@
 			"name": "Make - Debug",
 			"shell_cmd": "make debug",
 			"keyfiles": ["Makefile"],
-			"working_dir": "$project_path"
+			"working_dir": "$project_path",
 		},
-	]
+		{
+			"name": "Make & Run - Debug",
+			"keyfiles": ["Makefile"],
+			"working_dir": "$project_path",
+			"linux": {
+				"shell_cmd": "make debug && build/bitsybox_LIN_DEBUG/bitsybox",
+			},
+			"osx": {
+				"shell_cmd": "make debug && build/bitsybox_MAC_DEBUG/bitsybox",
+			},
+		},
+	],
 }

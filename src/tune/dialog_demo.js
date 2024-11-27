@@ -1,5 +1,7 @@
 function Dialog() {
 
+var BITSYBOX_HACK_maxPageLines = 10;
+
 this.CreateRenderer = function() {
 	return new DialogRenderer();
 };
@@ -24,7 +26,7 @@ var DialogRenderer = function() {
 	var font = null;
 	this.SetFont = function(f) {
 		font = f;
-		textboxInfo.height = (textboxInfo.padding_vert * 3) + (relativeFontHeight() * 2) + textboxInfo.arrow_height;
+		textboxInfo.height = (textboxInfo.padding_vert * (BITSYBOX_HACK_maxPageLines)) + (relativeFontHeight() * (BITSYBOX_HACK_maxPageLines)) + textboxInfo.arrow_height;
 
 		// todo : clean up all the scale stuff
 		var textboxScaleW = textboxInfo.width * getTextScale();
@@ -81,6 +83,9 @@ var DialogRenderer = function() {
 	];
 
 	this.DrawNextArrow = function() {
+		// HACK! for bitsybox tool demo menu
+		return;
+
 		// bitsy.log("draw arrow!");
 		var text_scale = getTextScale();
 		var textboxScaleW = textboxInfo.width * text_scale;
@@ -207,7 +212,6 @@ var DialogRenderer = function() {
 
 		if (buffer.CanContinue() && shouldDrawArrow) {
 			// bitsy.log("draw next arrow");
-			this.DrawNextArrow();
 			shouldDrawArrow = false;
 		}
 
@@ -529,14 +533,14 @@ var DialogBuffer = function() {
 		this.hasPlayedBlip = false;
 	}
 
-	function DialogDrawingChar(drawingId, effectList, effectParameterList) {
+	function DialogDrawingChar(drawingId, effectList, effectParameterList, BITSYBOX_HACK_renderer) {
 		DialogChar.call(this);
 
 		this.effectList = effectList.slice(); // clone effect list (since it can change between chars)
 		this.effectParameterList = effectParameterList.slice();
 
 		// get the first frame of the drawing and flatten it
-		var drawingData = renderer.GetDrawingSource(drawingId)[0];
+		var drawingData = BITSYBOX_HACK_renderer ? BITSYBOX_HACK_renderer.GetDrawingSource(drawingId)[0] : renderer.GetDrawingSource(drawingId)[0];
 		var drawingDataFlat = [];
 		for (var i = 0; i < drawingData.length; i++) {
 			drawingDataFlat = drawingDataFlat.concat(drawingData[i]);
@@ -620,14 +624,14 @@ var DialogBuffer = function() {
 		isActive = true;
 	}
 
-	this.AddDrawing = function(drawingId) {
+	this.AddDrawing = function(drawingId, BITSYBOX_HACK_renderer) {
 		// bitsy.log("DRAWING ID " + drawingId);
 
 		var curPageIndex = buffer.length - 1;
 		var curRowIndex = buffer[curPageIndex].length - 1;
 		var curRowArr = buffer[curPageIndex][curRowIndex];
 
-		var drawingChar = new DialogDrawingChar(drawingId, activeTextEffects, activeTextEffectParameters);
+		var drawingChar = new DialogDrawingChar(drawingId, activeTextEffects, activeTextEffectParameters, BITSYBOX_HACK_renderer);
 
 		var rowLength = GetCharArrayWidth(curRowArr);
 
@@ -645,11 +649,11 @@ var DialogBuffer = function() {
 
 			afterManualPagebreak = false;
 		}
-		else if (rowLength + drawingChar.spacing  <= pixelsPerRow || rowLength <= 0) {
+		else if (rowLength + drawingChar.spacing  <= pixelsPerRow || rowLength < BITSYBOX_HACK_maxPageLines) {
 			//stay on same row
 			curRowArr.push(drawingChar);
 		}
-		else if (curRowIndex == 0) {
+		else if (curRowIndex < BITSYBOX_HACK_maxPageLines) {
 			//start next row
 			buffer[curPageIndex][curRowIndex] = curRowArr;
 			buffer[curPageIndex].push([]);
@@ -711,11 +715,11 @@ var DialogBuffer = function() {
 
 				afterManualPagebreak = false;
 			}
-			else if (rowLength + wordLength <= pixelsPerRow || rowLength <= 0) {
+			else if (rowLength + wordLength <= pixelsPerRow || rowLength < BITSYBOX_HACK_maxPageLines) {
 				//stay on same row
 				curRowArr = AddWordToCharArray(curRowArr, wordWithPrecedingSpace, activeTextEffects, activeTextEffectParameters);
 			}
-			else if (curRowIndex == 0) {
+			else if (curRowIndex < BITSYBOX_HACK_maxPageLines) {
 				//start next row
 				buffer[curPageIndex][curRowIndex] = curRowArr;
 				buffer[curPageIndex].push([]);
@@ -761,7 +765,7 @@ var DialogBuffer = function() {
 
 	this.AddLinebreak = function() {
 		var lastPage = buffer[buffer.length-1];
-		if (lastPage.length <= 1) {
+		if (lastPage.length <= BITSYBOX_HACK_maxPageLines) {
 			// bitsy.log("LINEBREAK - NEW ROW ");
 			// add new row
 			lastPage.push([]);

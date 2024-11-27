@@ -17,6 +17,10 @@ REMOVE_DIRECTORY=rm -rf
 # make alias to directory (shortcut)
 MAKE_ALIAS=ln -s
 
+# == SDL CONFIG ==
+SDL2_FLAGS = $(shell sdl2-config --cflags --libs)
+SDL2_FLAGS_STATIC = $(shell sdl2-config --cflags --static-libs)
+
 # == DETECT PLATFORM ==
 # WIN = Windows 10, MAC = MacOS, RPI = Raspberry Pi 4
 ifeq ($(OS), Windows_NT)
@@ -26,17 +30,16 @@ ifeq ($(OS), Windows_NT)
 	# windows has a standard extension for executables (the other platforms don't)
 	APP_EXTENSION=.exe
 	# windows doesn't have a standard location to install libraries but I've chosen to use C:
-	SDL2_ROOT=C:\\SDL2-2.0.16
+	SDL2_ROOT=C:\\SDL2
 	# on windows I'm using the DLL version of SDL2
 	SDL2_LIB_SRC=SDL2.dll
 	SDL2_LIB=SDL2.dll
 	# path to the SDL2 library
-	SDL2_PATH=${SDL2_ROOT}\\lib\\x86\\
+	SDL2_PATH=${SDL2_ROOT}\\
 	# windows also requires specifying the location of the library headers
 	SDL2_INCLUDE_PATH=${SDL2_ROOT}\\include\\
-	DEBUG_FLAGS=-I${SDL2_INCLUDE_PATH} -L${SDL2_PATH} -lSDL2main -lSDL2
-	# add the "-mwindows" flag in release builds to hide console output
-	RELEASE_FLAGS=${DEBUG_FLAGS} -mwindows
+	DEBUG_FLAGS=${SDL2_FLAGS} -mconsole
+	RELEASE_FLAGS=${SDL2_FLAGS_STATIC}
 	BUILD_RELEASE_GAMES_SUBDIR=games
 else
 	ifeq ($(shell uname -s), Darwin)
@@ -48,14 +51,11 @@ else
 		SDL2_LIB=SDL2.framework
 		# look for SDL2 from the standard install location for frameworks on macos
 		SDL2_PATH=/Library/Frameworks/
-		DEBUG_FLAGS=-framework SDL2
-		# add an -rpath so the release version can find SDL2.framework in the app bundle
-		RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,@executable_path/../Frameworks
+		DEBUG_FLAGS=${SDL2_FLAGS}
+		RELEASE_FLAGS=${SDL2_FLAGS_STATIC}
 		# mac app bundles require the app binary to be in a specific sub-directory
 		MAC_APP_BUNDLE_ROOT=${APP_NAME}.app/Contents
 		BUILD_RELEASE_BINARY_SUBDIR=${MAC_APP_BUNDLE_ROOT}/MacOS
-		# put SDL2 framework in a consistent spot in the app bundle
-		BUILD_RELEASE_LIBRARY_SUBDIR=${MAC_APP_BUNDLE_ROOT}/Frameworks
 		# games also need to be in the bundle for the app to have permission to open them
 		BUILD_RELEASE_GAMES_SUBDIR=${MAC_APP_BUNDLE_ROOT}/Resources/games
 	else
@@ -64,9 +64,9 @@ else
 				# == LINUX ==
 				PLATFORM=LIN
 				# path to the SDL2 library file
-				SDL2_PATH=/usr/lib/
+				SDL2_PATH=/usr/lib/x86_64-linux-gnu/
 				# SDL2 library file
-				SDL2_LIB_SRC=libSDL2-2.0.so.0.16.0
+				SDL2_LIB_SRC=libSDL2-2.0.so.0.18.2
 				SDL2_LIB=libSDL2-2.0.so.0
 			else
 				# == RASPBERRY PI ==
@@ -78,9 +78,10 @@ else
 				SDL2_LIB=libSDL2-2.0.so.0
 			endif
 
-			DEBUG_FLAGS=-lSDL2 -lm
-			# add an -rpath so I can bundle the .so file with the app binary so users don't need to install SDL2
-			RELEASE_FLAGS=${DEBUG_FLAGS} -Wl,-rpath,'$$ORIGIN'
+			DEBUG_FLAGS=${SDL2_FLAGS} -lm
+			RELEASE_FLAGS=${SDL2_FLAGS_STATIC}
+			# for linux, also build a dynamically-linked version for release, so users can supply their own SDL2 installation
+			RELEASE_FLAGS_DYNAMIC=${SDL2_FLAGS} -lm
 			BUILD_RELEASE_GAMES_SUBDIR=games
 		endif
 	endif
@@ -91,6 +92,8 @@ endif
 PLATFORM_DEFINE=PLATFORM_${PLATFORM}
 # the app binary filename is the app's name + the platform extension (if any)
 APP_BINARY=${APP_NAME}${APP_EXTENSION}
+# for linux, we also build a dynamically linked version of the binary
+APP_BINARY_DYNAMIC=${APP_NAME}_dyn${APP_EXTENSION}
 # path to C source files
 SRC_FILES=src/bitsybox/*.c src/bitsybox/duktape/*.c
 # build directories
@@ -102,22 +105,31 @@ BUILD_RELEASE_LIBRARY_DIR=${BUILD_RELEASE_DIR}/${BUILD_RELEASE_LIBRARY_SUBDIR}
 BUILD_RELEASE_GAMES_DIR=${BUILD_RELEASE_DIR}/${BUILD_RELEASE_GAMES_SUBDIR}
 
 # == RELEASE TARGET ==
-release: clean-release embed-js build-release package-release-${PLATFORM}
+release: clean-release embed-js build-release-${PLATFORM} package-release-${PLATFORM}
 
 embed-js:
-	${JS} util/embed src/bitsy/engine src/bitsybox
-	${JS} util/embed src/bitsy/font src/bitsybox
-	${JS} util/embed src/boot src/bitsybox
+	${JS} util/embed.js ./src/bitsy/engine ./src/bitsybox
+	${JS} util/embed.js ./src/bitsy/font ./src/bitsybox
+	${JS} util/embed.js ./src/boot ./src/bitsybox
+	${JS} util/embed.js ./src/tune ./src/bitsybox
 
 build-release:
 	${MAKE_DIRECTORY} ${BIN_DIR}
 	$(CC) $(SRC_FILES) ${RELEASE_FLAGS} -D${PLATFORM_DEFINE} -o ${BIN_DIR}/$(APP_BINARY)
 
+build-release-WIN: build-release
+
+build-release-MAC: build-release
+
+build-release-LIN: build-release
+	$(CC) $(SRC_FILES) ${RELEASE_FLAGS_DYNAMIC} -D${PLATFORM_DEFINE} -o ${BIN_DIR}/$(APP_BINARY_DYNAMIC)
+
+build-release-RPI: build-release
+	$(CC) $(SRC_FILES) ${RELEASE_FLAGS_DYNAMIC} -D${PLATFORM_DEFINE} -o ${BIN_DIR}/$(APP_BINARY_DYNAMIC)
+
 package-release:
 	${MAKE_DIRECTORY} ${BUILD_RELEASE_BINARY_DIR}
-	${MAKE_DIRECTORY} ${BUILD_RELEASE_LIBRARY_DIR}
 	${MAKE_DIRECTORY} ${BUILD_RELEASE_GAMES_DIR}
-	${COPY_FILES} ${SDL2_PATH}${SDL2_LIB_SRC} ${BUILD_RELEASE_LIBRARY_DIR}/${SDL2_LIB}
 	${COPY_FILES} ${BIN_DIR}/$(APP_BINARY) ${BUILD_RELEASE_BINARY_DIR}/${APP_BINARY}
 	${COPY_FILES} res/demo_games/* ${BUILD_RELEASE_GAMES_DIR}
 	${COPY_FILES} doc/MANUAL.txt ${BUILD_RELEASE_DIR}/MANUAL.txt
@@ -130,8 +142,10 @@ package-release-MAC: package-release
 	${MAKE_ALIAS} ${BUILD_RELEASE_GAMES_SUBDIR} ${BUILD_RELEASE_DIR}/games
 
 package-release-LIN: package-release
+	${COPY_FILES} ${BIN_DIR}/$(APP_BINARY_DYNAMIC) ${BUILD_RELEASE_BINARY_DIR}/${APP_BINARY_DYNAMIC}
 
 package-release-RPI: package-release
+	${COPY_FILES} ${BIN_DIR}/$(APP_BINARY_DYNAMIC) ${BUILD_RELEASE_BINARY_DIR}/${APP_BINARY_DYNAMIC}
 
 # == DEBUG TARGET ==
 debug: clean-debug build-debug package-debug-${PLATFORM}
@@ -145,6 +159,8 @@ package-debug:
 	${COPY_FILES} ${BIN_DIR}/$(APP_BINARY) ${BUILD_DEBUG_DIR}/$(APP_BINARY)
 	${COPY_FILES} src/bitsy ${BUILD_DEBUG_DIR}/bitsy
 	${COPY_FILES} src/boot ${BUILD_DEBUG_DIR}/boot
+	${COPY_FILES} src/test ${BUILD_DEBUG_DIR}/test
+	${COPY_FILES} src/tune ${BUILD_DEBUG_DIR}/tune
 	${COPY_FILES} res/demo_games ${BUILD_DEBUG_DIR}/games
 
 package-debug-WIN: package-debug

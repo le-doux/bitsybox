@@ -4,6 +4,8 @@
 |  by  adam le doux  |
 *--------------------*
 
+v0.2-8.12
+
 == controls ==
 toggle fullscreen: alt+enter
 quit: alt+F4 or cmd+Q
@@ -45,3 +47,25 @@ to run the application:
 >> from now on you should be able
    to run bitsybox normally by
    double-clicking!
+
+== note for linux / raspberrry pi ==
+there are two different builds included:
+- bitsybox (statically linked)
+- bitsybox_dyn (dynamically linked)
+
+use bitsybox_dyn if you want to supply your own version of SDL2
+
+== tune tool demo ==
+this version of bitsybox includes a demo of the tune tool running within bitsybox!
+
+IMPORTANT NOTES:
+- this demo is very experimental!
+- expect bugs, and an unfinished/unpolished UI
+- you *cannot* save tunes you create in this demo
+
+controls:
+- launch demo: from the bitsybox main screen hold the menu button (ESC on keyboard, START on gamepad) for a few seconds to launch the tune tool demo
+- tune editing: use your mouse to add and remove notes, or change the selected bar
+- show/hide tool menu: press the menu button to hide/show the menus for play/pause, instrument selection, arpeggiation, and other settings
+- menu navigation: use arrow keys or d-pad to navigate between menu items, use the ok button (space, enter, or face buttons) to select/confirm an item
+- quitting demo: to return to the bitsybox main screen, open the tool menu, navigate to the "tune" submenu, select "quit", and press the ok button

@@ -1,10 +1,20 @@
-var fs = require('fs');
+if (typeof(arg) === "undefined") {
+	// === NODE.JS SHIM ===
 
-var args = process.argv.slice(2); // remove the node args
-var srcPath = args[0];
-var destPath = args[1];
+	arg = process.argv.slice(2); // remove the node args
 
-console.log("=== embed: " + srcPath + " -> " + destPath + " ===");
+	print = function(str) { console.log(str); };
+
+	fs = require('fs');
+	listdir = function(path) { return fs.readdirSync(path); };
+	read = function(path) { return fs.readFileSync(path, "utf8"); };
+	write = function(path, str) { fs.writeFileSync(path, str); };
+}
+
+var srcPath = arg[0];
+var destPath = arg[1];
+
+print("=== embed: " + srcPath + " -> " + destPath + " ===");
 
 var srcPathSplit = srcPath.split("/");
 var embedName = srcPathSplit[srcPathSplit.length - 1];
@@ -14,18 +24,17 @@ var embedDef = embedName.toUpperCase() + "_H";
 var embedHeaderStr = "";
 embedHeaderStr += "#ifndef " + embedDef + "\n#define " + embedDef + "\n\n";
 
-var files = fs.readdirSync(srcPath);
+var files = listdir(srcPath);
 for (var i = 0; i < files.length; i++) {
 	var fileName = files[i];
 	var fileExt = fileName.split(".")[1];
 
 	if (fileExt === "js" || fileExt === "bitsy" || fileExt === "bitsyfont") {
-		console.log(fileName);
-		// console.log(fs.readFileSync(srcPath + "/" + fileName, "utf8"));
+		print(fileName);
 
 		embedHeaderStr += "char* " + (fileName.replace(".", "_")) + " =\n";
 
-		var fileSrc = fs.readFileSync(srcPath + "/" + fileName, "utf8");
+		var fileSrc = read(srcPath + "/" + fileName);
 		var fileLines = fileSrc.split(/\r?\n/);
 
 		for (var j = 0; j < fileLines.length; j++) {
@@ -39,6 +48,6 @@ for (var i = 0; i < files.length; i++) {
 
 embedHeaderStr += "#endif";
 
-fs.writeFileSync(destPath + "/" + embedHeaderFileName, embedHeaderStr);
+write(destPath + "/" + embedHeaderFileName, embedHeaderStr);
 
-console.log("=== done! ===");
+print("=== done! ===");
